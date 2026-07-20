@@ -223,6 +223,48 @@ print(response.content)
 
 Your code doesn't change when you switch models. This lets you optimize for different scenarios (privacy, capabilities, cost) without rewriting your app.
 
+#### OpenAI-Compatible Chat Completions
+
+`OpenaiLLM` uses OpenAI's Responses API. To use the Chat Completions protocol with OpenAI,
+DeepSeek, or another compatible provider, use `ChatCompletionsLLM`:
+
+```swift
+// Reads OPENAI_API_KEY when apiToken is omitted.
+let openAIChat = ChatCompletionsLLM(
+  model: "gpt-4.1-mini",
+  provider: .openAI
+)
+
+// Reads DEEPSEEK_API_KEY and automatically uses DeepSeek-compatible
+// max_tokens, JSON Object structured output, and non-strict tools.
+let deepSeek = ChatCompletionsLLM(
+  model: "deepseek-v4-flash",
+  provider: .deepSeek
+)
+```
+
+For another OpenAI-compatible service, describe only the provider differences:
+
+```swift
+let provider = ChatCompletionsProvider.custom(
+  ChatCompletionsProviderConfiguration(
+    host: "llm.example.com",
+    basePath: "/v1",
+    apiKeyEnvironmentVariable: "EXAMPLE_API_KEY",
+    responseParsing: .relaxed,
+    tokenLimitParameter: .maxTokens,
+    structuredOutput: .jsonObject,
+    usesStrictToolSchemas: false
+  )
+)
+
+let llm = ChatCompletionsLLM(model: "example-model", provider: provider)
+```
+
+Compatible providers must implement the OpenAI Chat Completions message, streaming SSE, and
+tool-call wire formats. Provider configuration controls endpoint, response parsing, token-limit
+field, structured-output strategy, and strict tool schemas.
+
 ### Step 6: Conversations
 
 For multi-turn conversations, use `Chat` to maintain context across messages:
@@ -335,14 +377,15 @@ print(response.content)
 | Streaming structured | `replyStream(returning:)` | `replyStream(to: "...", returning: MyStruct.self)` |
 | Function calling     | `reply(to:tools:)`        | `reply(to: "...", tools: [myTool])`                |
 | Conversation         | `Chat`                    | `chat.send("Hello")`                               |
-| Model switching      | `any LLM`                 | `SystemLLM()` or `OpenaiLLM()`                     |
+| Model switching      | `any LLM`                 | `SystemLLM()`, `OpenaiLLM()`, or `ChatCompletionsLLM()` |
 
 ## 🔧 Supported Models
 
 | Model         | Type        | Privacy     | Capabilities | Cost        |
 | ------------- | ----------- | ----------- | ------------ | ----------- |
 | **SystemLLM** | On-device   | 🔒 Private  | Good         | 🆓 Free     |
-| **OpenaiLLM** | Cloud API   | ⚠️ Shared   | Excellent    | 💰 Paid     |
+| **OpenaiLLM** | Responses API | ⚠️ Shared | Excellent    | 💰 Paid     |
+| **ChatCompletionsLLM** | Compatible cloud API | ⚠️ Shared | Excellent | 💰 Paid |
 | **MlxLLM**    | On-device   | 🔒 Private  | Excellent    | 🆓 Free     |
 | **CustomLLM** | Your choice | Your choice | Your choice  | Your choice |
 

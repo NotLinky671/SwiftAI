@@ -61,6 +61,7 @@ let package = Package(
       dependencies: [
         "SwiftAI",
         "SwiftAILLMTesting",
+        .product(name: "OpenAI", package: "OpenAI"),
       ]
     ),
     .testTarget(
